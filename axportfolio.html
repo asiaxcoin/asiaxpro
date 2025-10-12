@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AX portfolio</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <style>
+    body { background: linear-gradient(180deg, #081024, #0f1a2b); }
+    .outer-ring {
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, rgba(59,130,246,0.08), rgba(2,6,23,0.6));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 30px rgba(14,51,94,0.6);
+      position: relative;
+      border: 6px solid rgba(7, 243, 46, 0.8);
+      overflow: visible;
+    }
+    .ring-decor {
+      position: absolute; inset: -12px; border-radius: 50%;
+      background: conic-gradient(rgba(96,165,250,0.06), transparent 20%, rgba(59,130,246,0.06) 40%, transparent 60%);
+      filter: blur(6px);
+      animation: rotate 18s linear infinite;
+    }
+    .inner-circle {
+      width: 210px; height: 210px; border-radius: 50%;
+      background: radial-gradient(circle at 50% 45%, #08304f, #051826);
+      border: 4px solid rgba(96,165,250,0.12);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #e6f0ff; text-align: center;
+      box-shadow: inset 0 8px 30px rgba(2,6,23,0.8);
+    }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @media (max-width: 480px) {
+      .outer-ring { width: 80vw; height: 80vw; }
+      .inner-circle { width: 70vw; height: 70vw; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center text-white">
+
+  <!-- 🔹 Top bar -->
+  <div class="w-full bg-blue-900/90 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
+    <div>
+      <p class="text-xl font-semibold">𝔸𝕤𝕚𝕒𝕩 𝕊𝕞𝕒𝕣𝕥 ℙ𝕠𝕣𝕥𝕗𝕠𝕝𝕚𝕠</p>
+      <p id="topUserId" class="text-xs opacity-75">my wallet address</p>
+    </div>
+  </div>
+
+  <!-- 🔸 Center countdown -->
+  <div class="flex-1 w-full flex items-center justify-center py-6">
+    <div class="outer-ring">
+      <div class="ring-decor"></div>
+      <div class="inner-circle">
+        <div class="text-center">
+          <div class="text-2xl font-semibold">𝔸𝕊𝕀𝔸𝕏</div>
+          <div id="countTime" class="text-4xl font-extrabold my-1">--:--:--</div>
+          <div class="text-xs opacity-70 mt-2">Next claim countdown</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Action Buttons Section -->
+  <div class="w-full max-w-sm px-4 pb-4">
+    <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-md">
+      <p id="walletAddr" class="text-xs text-sky-200 mb-3 break-words">Not connected</p>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button id="connectBtn" class="py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold">CONNECT</button>
+        <button id="stakeBtn" class="py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold">STAKE</button>
+        <button id="claimBtn" class="col-span-2 py-3 rounded-lg bg-green-500 text-white text-sm font-semibold">⚡ CLAIM 0.40 ASIAX ⚡</button>
+        <button id="showAxIdBtn" class="py-2 rounded-lg border border-white/20 text-white text-sm">MY ID</button>
+        <button id="remainingBtn" class="py-2 rounded-lg border border-white/20 text-white text-sm">REMAINING</button>
+        <button id="backHomeBtn" class="col-span-2 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold">⬅️ HOME</button>
+      </div>
+
+      <p id="message" class="text-center text-sm mt-3 min-h-[1.4rem]"></p>
+    </div>
+  </div><script>
+    const tokenAddress = "0xe36b5223d488322fac2ddda937e5ab226e83fbbd";
+    const contractAddress = "0x614799D80B547EcF0C04496aaa9632FfdE98d1bA";
+    const STAKE_AMOUNT_RAW = "200";
+    const CLAIM_INTERVAL_SECONDS = 86400;
+
+    const abi = [
+      "function stake() external",
+      "function claimDaily() external",
+      "function getDisplayId(address user) view returns (string)",
+      "function canClaim(address user) view returns (bool)",
+      "function remainingClaims(address user) view returns (uint16)",
+      "function stakes(address) view returns (bool active,uint256 stakedAt,uint256 lastClaim,uint16 claimsMade)",
+      "event Staked(address indexed user,uint256 amount,string axId)",
+      "event Claimed(address indexed user,uint16 claimIndex,uint256 amount)"
+    ];
+    const erc20Abi = [
+      "function approve(address spender,uint256 amount) public returns(bool)",
+      "function decimals() view returns(uint8)"
+    ];
+
+    let provider, signer, contract, tokenContract, userAddress = null, decimals = 18;
+    const msg = (t, c="white") => {
+      const el = document.getElementById("message");
+      el.innerText = t; el.style.color = c;
+      clearTimeout(msg._t); msg._t = setTimeout(()=>el.innerText="", 4000);
+    };
+    const shortAddr = a => a ? a.slice(0,6)+"..."+a.slice(-4) : "--";
+    const countEl = document.getElementById("countTime");
+    let countdownTimer = null;
+
+    async function connectWallet(){
+      try{
+        if(!window.ethereum) return alert("Install MetaMask");
+        await window.ethereum.request({ method:"eth_requestAccounts" });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById("walletAddr").innerText = shortAddr(userAddress);
+        document.getElementById("topUserId").innerText = shortAddr(userAddress);
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+        try{ decimals = await tokenContract.decimals(); }catch{}
+        msg("Wallet connected","#a7f3d0");
+        updateCountdown();
+      }catch(e){ msg("Connection failed","salmon"); }
+    }
+
+    async function stake(){
+      if(!signer) return msg("Connect wallet first","salmon");
+      try{
+        const amount = ethers.utils.parseUnits(STAKE_AMOUNT_RAW,decimals);
+        const approveTx = await tokenContract.approve(contractAddress,amount);
+        msg("Approving...","#fef3c7");
+        await approveTx.wait();
+        const tx = await contract.stake();
+        msg("Staking...","#fef3c7");
+        await tx.wait();
+        msg("✅ Staked successfully","#bbf7d0");
+      }catch(e){ msg("Stake error","salmon"); }
+    }
+
+    async function claim(){
+      if(!signer) return msg("Connect wallet first","salmon");
+      try{
+        const tx = await contract.claimDaily();
+        msg("Claiming...","#fef3c7");
+        await tx.wait();
+        msg("✅ Claimed successfully","#bbf7d0");
+      }catch(e){ msg("Claim error","salmon"); }
+    }
+
+    async function showAxId(){
+      if(!signer) return msg("Connect wallet first","salmon");
+      try{
+        const axId = await contract.getDisplayId(userAddress);
+        alert("Your AX ID: "+axId);
+      }catch{ msg("Unable to fetch ID","salmon"); }
+    }
+
+    async function showRemaining(){
+      if(!signer) return msg("Connect wallet first","salmon");
+      try{
+        const rem = await contract.remainingClaims(userAddress);
+        alert("Remaining Claims: "+rem.toString());
+      }catch{ msg("Unable to fetch","salmon"); }
+    }
+
+    async function updateCountdown(){
+      if(!signer) return countEl.innerText="--:--:--";
+      try{
+        const info = await contract.stakes(userAddress);const lastClaim = Number(info.lastClaim);
+        const now = Math.floor(Date.now()/1000);
+        const target = lastClaim + CLAIM_INTERVAL_SECONDS;
+        if(!info.active){ countEl.innerText="Not Staked"; return; }
+        if(countdownTimer) clearInterval(countdownTimer);
+        const tick = ()=>{
+          const diff = Math.max(0, target - Math.floor(Date.now()/1000));
+          const h = String(Math.floor((diff%86400)/3600)).padStart(2,'0');
+          const m = String(Math.floor((diff%3600)/60)).padStart(2,'0');
+          const s = String(diff%60).padStart(2,'0');
+          countEl.innerText = diff===0 ? "00:00:00" : `${h}:${m}:${s}`;
+        };
+        tick(); countdownTimer = setInterval(tick,1000);
+      }catch{ countEl.innerText="--:--:--"; }
+    }
+
+    document.getElementById("connectBtn").onclick = connectWallet;
+    document.getElementById("stakeBtn").onclick = stake;
+    document.getElementById("claimBtn").onclick = claim;
+    document.getElementById("showAxIdBtn").onclick = showAxId;
+    document.getElementById("remainingBtn").onclick = showRemaining;
+    document.getElementById("backHomeBtn").onclick = ()=>window.location.href="index.html";
+  </script>
+</body>
+</html>

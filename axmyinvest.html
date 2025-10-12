@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Investments | ASIAX PRO</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 95%;
+      max-width: 420px;
+      background: linear-gradient(145deg, #111, #000);
+      border-radius: 16px;
+      box-shadow: 0 0 20px #00ffff40;
+      padding: 20px;
+      text-align: center;
+      overflow-x: auto;
+    }
+    h1 {
+      font-size: 22px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      margin-bottom: 15px;
+    }
+    button {
+      background-color: #00ffff;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      transition: 0.3s;
+      box-shadow: 0 4px 8px #00ffff30;
+    }
+    button:hover {
+      background-color: #00cccc;
+      transform: scale(1.02);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px 0;
+      border-bottom: 1px solid #222;
+    }
+    th {
+      color: #00ffff;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #111;
+    }
+    #loader {
+      color: #00ffff;
+      margin-top: 10px;
+      font-size: 14px;
+      display: none;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .total {
+      margin-top: 15px;
+      font-weight: 600;
+      color: #00ffcc;
+    }
+    .back-btn {
+      background-color: #ff0055;
+      color: #fff;
+      margin-top: 15px;
+    }
+    .back-btn:hover {
+      background-color: #cc0044;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 My Investments</h1>
+    <button id="connectBtn">𝐏𝐫𝐞𝐬𝐬 𝐭𝐡𝐢𝐬 𝐛𝐮𝐭𝐭𝐨𝐧 𝐭𝐨 𝐯𝐢𝐞𝐰</button>
+    <div id="loader">Loading your investments...</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Amount (ASIAX)</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="investmentTable"></tbody>
+    </table>
+    <div id="totalInvestment" class="total"></div>
+    <button class="back-btn" onclick="goHome()">⬅️ Back to Home</button>
+  </div>
+
+  <script>
+    const contractAddress = "0xF6d0d72AAf0Bbf5C459E680f1e6E75E3B1ce1f06"; // <-- Apna contract address
+    const POLYGON_CHAIN_ID = "0x89";
+    const abi = [{
+      "inputs":[{"internalType":"address","name":"_user","type":"address"}],
+      "name":"getUserDeposits",
+      "outputs":[
+        {"internalType":"uint256[]","name":"amounts","type":"uint256[]"},
+        {"internalType":"uint256[]","name":"startTimes","type":"uint256[]"}
+      ],
+      "stateMutability":"view",
+      "type":"function"
+    }];
+
+    async function connectWallet() {
+      try {
+        if (!window.ethereum) {
+          alert("Please install MetaMask!");
+          return;
+        }
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== POLYGON_CHAIN_ID) {
+          alert("Please switch to Polygon Mainnet!");
+          return;
+        }
+        const provider = new ethers.providers.Web3Provider(window.ethereum);await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const user = await signer.getAddress();
+        document.getElementById("loader").style.display = "block";
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+        const result = await contract.getUserDeposits(user);
+        document.getElementById("loader").style.display = "none";
+        displayInvestments(result.amounts, result.startTimes);
+      } catch (error) {
+        console.error(error);
+        alert("⚠️ Error loading data!");
+        document.getElementById("loader").style.display = "none";
+      }
+    }
+
+    function displayInvestments(amounts, times) {
+      const tbody = document.getElementById("investmentTable");
+      const totalBox = document.getElementById("totalInvestment");
+      tbody.innerHTML = "";
+      let total = 0;
+      for (let i = 0; i < amounts.length; i++) {
+        const amount = parseFloat(ethers.utils.formatUnits(amounts[i], 18));
+        const date = new Date(times[i].toNumber() * 1000).toLocaleDateString();
+        total += amount;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${i + 1}</td><td>${amount.toFixed(2)}</td><td>${date}</td>`;
+        tbody.appendChild(tr);
+      }
+      totalBox.innerText = `Total Investment: ${total.toFixed(2)} ASIAX`;
+    }
+
+    function goHome() {
+      window.location.href = "axmenu.html"; // <-- Apne home page ka path
+    }
+
+    document.getElementById("connectBtn").addEventListener("click", connectWallet);
+  </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MY TEAM</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 430px;
+      background: linear-gradient(145deg, #111, #000);
+      border-radius: 16px;
+      box-shadow: 0 0 20px #00ffff40;
+      padding: 20px;
+      animation: fadeIn 0.8s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #00ffff;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    button {
+      background-color: #00ffff;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 0;
+      width: 100%;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #00cccc;
+      transform: scale(1.02);
+    }
+
+    .back-btn {
+      background-color: #ff007f;
+      color: #fff;
+    }
+
+    .back-btn:hover {
+      background-color: #ff3399;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #222;
+      padding: 10px 0;
+    }
+
+    th {
+      color: #00ffff;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #111;
+      transition: 0.3s;
+    }
+
+    .loader {
+      display: none;
+      font-size: 16px;
+      color: #00ffff;
+      margin-top: 15px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>𝐌𝐘 50 𝐋𝐄𝐕𝐄𝐋 𝐓𝐄𝐀𝐌</h1>
+    <button id="connect-btn">𝐏𝐫𝐞𝐬𝐬 𝐭𝐡𝐢𝐬 𝐛𝐮𝐭𝐭𝐨𝐧 𝐭𝐨 𝐯𝐢𝐞𝐰 𝐭𝐡𝐞 𝐭𝐞𝐚𝐦</button>
+    <div id="loader" class="loader">Loading team data...</div>
+
+    <table id="teamTable">
+      <thead>
+        <tr>
+          <th>Level</th>
+          <th>Team Count 👥</th>
+          <th>Business 💰</th>
+        </tr>
+      </thead>
+      <tbody id="teamData"></tbody>
+    </table>
+
+    <button class="back-btn" onclick="goHome()">BACK TO HOME</button>
+  </div>
+
+  <script>
+    const contractAddress = "0xF6d0d72AAf0Bbf5C459E680f1e6E75E3B1ce1f06"; // <-- apna address daalna
+    const POLYGON_CHAIN_ID = "0x89";
+
+    const abi = [
+      {
+        "inputs":[{"internalType":"address","name":"_user","type":"address"}],
+        "name":"getBusinessAndAmount",
+        "outputs":[
+          {"internalType":"uint256[50]","name":"levelBusiness","type":"uint256[50]"},
+          {"internalType":"uint256[50]","name":"levelCount","type":"uint256[50]"}
+        ],
+        "stateMutability":"view",
+        "type":"function"
+      }
+    ];
+
+    async function connectWallet() {
+      try {
+        if (!window.ethereum) {
+          alert("Please install MetaMask!");
+          return;
+        }
+
+        // Check Polygon Network
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== POLYGON_CHAIN_ID) {
+          alert("Please switch MetaMask to Polygon Mainnet!");
+          return;
+        }
+
+        // Connect wallet
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const userAddress = await signer.getAddress();const contract = new ethers.Contract(contractAddress, abi, provider);
+
+        document.getElementById("loader").style.display = "block";
+        const result = await contract.getBusinessAndAmount(userAddress);
+        document.getElementById("loader").style.display = "none";
+
+        displayTeam(result.levelCount, result.levelBusiness);
+      } catch (error) {
+        console.error(error);
+        alert("⚠️ Error: Unable to load team data!");
+        document.getElementById("loader").style.display = "none";
+      }
+    }
+
+    function displayTeam(levelCount, levelBusiness) {
+      const tbody = document.getElementById("teamData");
+      tbody.innerHTML = "";
+
+      for (let i = 0; i < 50; i++) {
+        const tr = document.createElement("tr");
+        const count = levelCount[i].toString();
+        const business = parseFloat(ethers.utils.formatUnits(levelBusiness[i], 18)).toFixed(2); // assuming 18 decimals
+
+        tr.innerHTML = 
+          `<td>Level ${i + 1}</td>
+          <td>${count}</td>
+          <td>${business}</td>`
+        ;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function goHome() {
+      window.location.href = "axmenu.html"; // yahan apna home page link daalna
+    }
+
+    document.getElementById("connect-btn").addEventListener("click", connectWallet);
+  </script>
+</body>
+</html>
