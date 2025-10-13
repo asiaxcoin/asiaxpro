@@ -54,10 +54,9 @@
     .nav-btn.active{background:var(--accent);color:#022}
     .nav-btn:hover{background:rgba(255,255,255,0.1);color:var(--accent)}
     .status{font-size:0.9rem;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.3);color:var(--muted);margin-bottom:12px;text-align:center}.status.error{color:var(--error);background:rgba(255,107,107,0.1)}.status.success{color:var(--success);background:rgba(40,167,69,0.1)}
-    .small-muted{font-size:0.9rem;color:var(--muted)}
-    .pulse{animation:pulse 2.5s infinite ease-in-out}
+    .small-muted{font-size:0.9rem;color:var(--muted)}.pulse{animation:pulse 2.5s infinite ease-in-out}
 
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,209,178,0.3)}70%{box-shadow:0 0 0 12px rgba(0,209,178,0)}100%{box-shadow:0 0 0 0 rgba(0,209,178,0)}}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,209,178,0.3)}70%{box-shadow:0 0 0 12px rgba(0,209,178,0)}100%{box-shadow:0 0 0 0 rgba(0,209,178,0)}}
     @media (min-width:560px){body{padding:24px}.card-app{padding:24px}.bottom-nav{bottom:24px}}
     @media (max-width:360px){.stats-row{flex-direction:column}.bottom-nav{flex-wrap:wrap}}
     /* Additional mobile fixes */
@@ -145,8 +144,7 @@
 
       <div style="margin-top:16px"><div class="small-muted">Referral Income</div>
         <div style="display:flex;gap:12px;margin-top:8px">
-          <div style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.03)">
-            <small class="small-muted">Sponsor</small>
+          <div style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.03)"><small class="small-muted">Sponsor</small>
             <div id="sponsorIncome" style="font-weight:600">0</div>
           </div>
           <div style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.03)">
@@ -155,7 +153,7 @@
           </div>
         </div>
 
-<div style="display:flex;gap:12px;margin-top:12px">
+        <div style="display:flex;gap:12px;margin-top:12px">
           <div style="flex:1">
             <button id="claimReferralsBtn" class="btn btn-sm btn-outline-light w-100">
               Claim Referrals
@@ -168,7 +166,9 @@
           </div>
         </div>
       </div>
-    </div><!-- Invest Card -->
+    </div>
+
+    <!-- Invest Card -->
     <div class="card-app">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
@@ -223,10 +223,11 @@
     <!-- Note Card -->
     <div class="card-app small-muted" style="font-size:0.9rem">
       <div><strong>Note:</strong> Contract source provided. Ensure MetaMask is connected to Polygon Mainnet. This frontend uses token & contract addresses set in the script below.</div>
-    </div><!-- Bottom Navigation -->
+    </div>
+
+    <!-- Bottom Navigation -->
     <div class="bottom-nav">
-      <button class="nav-btn active" id="navHome" aria-label="Home"><i class="fa-solid fa-house"></i></button>
-      <button class="nav-btn" id="navInvest" aria-label="Invest"><i class="fa-solid fa-coins"></i></button>
+      <button class="nav-btn active" id="navHome" aria-label="Home"><i class="fa-solid fa-house"></i></button><button class="nav-btn" id="navInvest" aria-label="Invest"><i class="fa-solid fa-coins"></i></button>
       <button class="nav-btn" id="navStats" aria-label="Stats"><i class="fa-solid fa-chart-simple"></i></button>
       <button class="nav-btn" id="navMore" aria-label="More"><i class="fa-solid fa-ellipsis"></i></button>
     </div>
@@ -317,14 +318,13 @@
           setStatus("Please switch MetaMask to Polygon Mainnet (137).", true);
         } else {
           setStatus("Connected to Polygon Mainnet", false);
-        }const address = await signer.getAddress();
+        }
+        const address = await signer.getAddress();
         document.getElementById('userAddress').innerText = short(address);
         document.getElementById('connectLabel').innerText = 'Connected';
         document.getElementById('connectBtn').classList.remove('pulse');
 
-        await loadUserData();
-
-        if (autoRefreshHandle) clearInterval(autoRefreshHandle);
+        await loadUserData();if (autoRefreshHandle) clearInterval(autoRefreshHandle);
         autoRefreshHandle = setInterval(() => {
           if (signer) loadUserData();
         }, AUTO_REFRESH_INTERVAL);
@@ -399,7 +399,7 @@
         const user = await signer.getAddress();
         const allowance = await tokenContract.allowance(user, CONTRACT_ADDRESS);
         if (allowance.gte(amountBN)) return null;
-        const tx = await tokenContract.approve(CONTRACT_ADDRESS, amountBN);
+        const tx = await tokenContract.approve(CONTRACT_ADDRESS, amountBN, { gasLimit: 100000 });
         setStatus("Approving token... tx: " + tx.hash, false);
         await tx.wait();
         setStatus("Approval confirmed", false);
@@ -408,16 +408,21 @@
         console.error("approveIfNeeded:", err);
         throw err;
       }
-    }// --------------- Actions -----------------
+    }
+
+    // --------------- Actions -----------------
     async function invest() {
-      if (!contract) { alert('Connect wallet first'); return; }
+      if (!contract) { 
+        alert('Connect wallet first'); 
+        return; 
+      }
       const rawAmount = document.getElementById('amount').value;
-      if (!rawAmount || Number(rawAmount) <= 0) {
-        alert('Enter valid amount');
+      if (!rawAmount || Number(rawAmount) <= 0) {alert('Enter valid amount');
         return;
       }
       const amountBN = ethers.utils.parseUnits(String(rawAmount), DECIMALS);
-      const isFirstTime = (await contract.userBasic(await signer.getAddress()))[2].eq(0);
+      const user = await signer.getAddress();
+      const isFirstTime = (await contract.userBasic(user))[2].eq(0);
       if (isFirstTime && Number(rawAmount) < 120) {
         alert('Minimum 120 AX for first investment');
         return;
@@ -429,22 +434,70 @@
         alert('Amount must be a multiple of 10');
         return;
       }
+
+      // Balance check
+      const balance = await tokenContract.balanceOf(user);
+      if (balance.lt(amountBN)) {
+        alert('Insufficient AX balance');
+        return;
+      }
+
+      // Deposit limit check
+      const userData = await contract.userBasic(user);
+      if (userData[10].length >= 100) {
+        alert('Maximum 100 deposits reached');
+        return;
+      }
+
+      // Referrer validation
       const refInput = document.getElementById('referrer').value.trim();
       const ref = refInput && ethers.utils.isAddress(refInput) ? refInput : ethers.constants.AddressZero;
+      if (ref !== ethers.constants.AddressZero) {
+        const refData = await contract.userBasic(ref);
+        if (refData[2].eq(0)) {
+          alert('Referrer is not a registered user');
+          return;
+        }
+      }
+
       try {
         document.getElementById('investBtn').disabled = true;
+        document.getElementById('amount').disabled = true;
+        document.getElementById('referrer').disabled = true;
+
+        // Approve if needed
         await approveIfNeeded(amountBN);
+
         setStatus("Sending invest tx...", false);
-        const tx = await contract.invest(ref, amountBN, { gasLimit: 300000 });
-        setStatus("Invest tx sent: " + tx.hash, false);
+        // Dynamic gas limit: 600k for first-time, 400k for others
+        const gasLimit = isFirstTime ? 600000 : 400000;
+        const tx = await contract.invest(ref, amountBN, { gasLimit: gasLimit });
+        setStatus("Invest tx sent: " + tx.hash + " (check Polygonscan)", false);
         await tx.wait();
-        setStatus("Invest successful", false);
+        setStatus("Invest successful! Reloading data...", false);
         await loadUserData();
       } catch (err) {
-        console.error("invest failed:", err);
-        setStatus("Invest failed: " + (err?.reason || err.message || String(err)), true);
+        console.error("Invest failed:", err);
+        let errorMsg = "Invest failed";
+        if (err.reason) {
+          errorMsg += `: ${err.reason}`;
+          if (err.reason.includes("Minimum 120AX")) {
+            errorMsg = "Invest failed: Minimum 120 AX required for first investment";
+          } else if (err.reason.includes("Max Deposit")) {
+            errorMsg = "Invest failed: Maximum 100 deposits reached";
+          } else if (err.reason.includes("Transfer failed")) {
+            errorMsg = "Invest failed: Check token balance and allowance";
+          }
+        } else if (err.message && err.message.includes('out of gas')) {
+          errorMsg += ": Increase gas limit in MetaMask (try 800,000)";
+        } else if (err.message) {
+          errorMsg += `: ${err.message}`;
+        }
+        setStatus(errorMsg, true);
       } finally {
         document.getElementById('investBtn').disabled = false;
+        document.getElementById('amount').disabled = false;
+        document.getElementById('referrer').disabled = false;
       }
     }
 
@@ -464,9 +517,7 @@
       } finally {
         document.getElementById('withdrawBtn').disabled = false;
       }
-    }
-
-    async function claimPools() {
+    }async function claimPools() {
       if (!contract) { alert('Connect wallet first'); return; }
       try {
         document.getElementById('claimBtn').disabled = true;
@@ -500,7 +551,9 @@
       } finally {
         document.getElementById('claimReferralsBtn').disabled = false;
       }
-    }async function walletWithdraw() {
+    }
+
+    async function walletWithdraw() {
       if (!contract) { alert('Connect wallet first'); return; }
       const raw = document.getElementById('withdrawAmount').value;
       if (!raw || Number(raw) <= 0) { alert('Enter amount'); return; }
@@ -544,7 +597,32 @@
     document.getElementById('refreshBtn').addEventListener('click', () => { if (signer) loadUserData(); });
     document.getElementById('refreshSmallBtn').addEventListener('click', () => { if (signer) loadUserData(); });
     document.getElementById('maxBtn').addEventListener('click', (e) => { e.preventDefault(); setMaxAmount(); });
-    document.getElementById('backHomeBtn').addEventListener('click', () => { window.location.href = 'index.html'; });
+    document.getElementById('backHomeBtn').addEventListener('click', () => { window.location.href = 'index.html'; });// Referrer input validation
+    document.getElementById('referrer').addEventListener('input', async () => {
+      const refInput = document.getElementById('referrer');
+      const value = refInput.value.trim();
+      if (value && !ethers.utils.isAddress(value)) {
+        refInput.classList.add('border-danger');
+        setStatus('Invalid referrer address', true);
+      } else if (value && ethers.utils.isAddress(value) && contract) {
+        try {
+          const refData = await contract.userBasic(value);
+          if (refData[2].eq(0)) {
+            refInput.classList.add('border-danger');
+            setStatus('Referrer is not a registered user', true);
+          } else {
+            refInput.classList.remove('border-danger');
+            setStatus('Ready', false);
+          }
+        } catch (err) {
+          refInput.classList.add('border-danger');
+          setStatus('Error validating referrer', true);
+        }
+      } else {
+        refInput.classList.remove('border-danger');
+        setStatus('Ready', false);
+      }
+    });
 
     // On load: indicate correct network if metamask present
     (async function init() {
