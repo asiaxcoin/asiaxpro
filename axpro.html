@@ -502,22 +502,58 @@
     }
 
     async function withdraw() {
-      if (!contract) { alert('Connect wallet first'); return; }
+      if (!contract) { 
+        alert('Connect wallet first'); 
+        return; 
+      }
       try {
         document.getElementById('withdrawBtn').disabled = true;
+        setStatus("Checking income...", false);
+
+        // Check if user is an investor
+        const user = await signer.getAddress();
+        const userData = await contract.userBasic(user);
+        if (userData[2].eq(0)) {
+          setStatus("Withdraw failed: You must invest first", true);
+          return;
+        }
+
+        // Check total incomeconst incomeData = await contract.getUserIncome(user);
+        const totalIncome = incomeData[0].add(incomeData[1]).add(incomeData[2]); // pendingROI + sponsorIncome + generationIncome
+        if (totalIncome.lt(ethers.utils.parseUnits("10", DECIMALS))) {
+          setStatus("Withdraw failed: Minimum 10 AX required", true);
+          return;
+        }
+
         setStatus("Calling withdraw (claim incomes to wallet)...", false);
-        const tx = await contract.withdraw({ gasLimit: 300000 });
-        setStatus("Withdraw tx sent: " + tx.hash, false);
+        // Higher gas limit for complex withdraw operations
+        const tx = await contract.withdraw({ gasLimit: 500000 });
+        setStatus("Withdraw tx sent: " + tx.hash + " (check Polygonscan)", false);
         await tx.wait();
-        setStatus("Withdraw processed (check Wallet Balance)", false);
+        setStatus("Withdraw successful! Check Wallet Balance.", false);
         await loadUserData();
       } catch (err) {
-        console.error("withdraw:", err);
-        setStatus("Withdraw failed: " + (err?.reason || err.message || String(err)), true);
+        console.error("Withdraw failed:", err);
+        let errorMsg = "Withdraw failed";
+        if (err.reason) {
+          errorMsg += `: ${err.reason}`;
+          if (err.reason.includes("Min 10 ASIAX")) {
+            errorMsg = "Withdraw failed: Minimum 10 AX income required";
+          } else if (err.reason.includes("Not an investor")) {
+            errorMsg = "Withdraw failed: You must invest first";
+          }
+        } else if (err.message && err.message.includes('out of gas')) {
+          errorMsg += ": Increase gas limit in MetaMask (try 800,000)";
+        } else if (err.message) {
+          errorMsg += `: ${err.message}`;
+        }
+        setStatus(errorMsg, true);
       } finally {
         document.getElementById('withdrawBtn').disabled = false;
       }
-    }async function claimPools() {
+    }
+
+    async function claimPools() {
       if (!contract) { alert('Connect wallet first'); return; }
       try {
         document.getElementById('claimBtn').disabled = true;
@@ -540,7 +576,7 @@
       try {
         document.getElementById('claimReferralsBtn').disabled = true;
         setStatus("Claiming referrals (this calls withdraw())...", false);
-        const tx = await contract.withdraw({ gasLimit: 300000 });
+        const tx = await contract.withdraw({ gasLimit: 500000 }); // Updated gas limit
         setStatus("Tx sent: " + tx.hash, false);
         await tx.wait();
         setStatus("Referrals moved to wallet balance. Now use Wallet Withdraw to get tokens.", false);
@@ -563,8 +599,7 @@
       try {
         document.getElementById('walletWithdrawBtn').disabled = true;
         setStatus("Sending WalletWithdraw tx...", false);
-        const tx = await contract.WalletWithdraw(amount, { gasLimit: 300000 });
-        setStatus("WalletWithdraw tx sent: " + tx.hash, false);
+        const tx = await contract.WalletWithdraw(amount, { gasLimit: 300000 });setStatus("WalletWithdraw tx sent: " + tx.hash, false);
         await tx.wait();
         setStatus("WalletWithdraw success — tokens sent", false);
         await loadUserData();
@@ -597,7 +632,9 @@
     document.getElementById('refreshBtn').addEventListener('click', () => { if (signer) loadUserData(); });
     document.getElementById('refreshSmallBtn').addEventListener('click', () => { if (signer) loadUserData(); });
     document.getElementById('maxBtn').addEventListener('click', (e) => { e.preventDefault(); setMaxAmount(); });
-    document.getElementById('backHomeBtn').addEventListener('click', () => { window.location.href = 'index.html'; });// Referrer input validation
+    document.getElementById('backHomeBtn').addEventListener('click', () => { window.location.href = 'index.html'; });
+
+    // Referrer input validation
     document.getElementById('referrer').addEventListener('input', async () => {
       const refInput = document.getElementById('referrer');
       const value = refInput.value.trim();
@@ -645,3 +682,4 @@
   </script>
 </body>
 </html>
+
