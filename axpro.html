@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ASIAXpro</title>
+  <!-- Tailwind not required, using included CSS below -->
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
@@ -53,9 +54,9 @@
     .nav-btn.active{background:var(--accent);color:#022}
     .nav-btn:hover{background:rgba(255,255,255,0.1);color:var(--accent)}
     .status{font-size:0.9rem;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.3);color:var(--muted);margin-bottom:12px;text-align:center}.status.error{color:var(--error);background:rgba(255,107,107,0.1)}.status.success{color:var(--success);background:rgba(40,167,69,0.1)}
-    .small-muted{font-size:0.9rem;color:var(--muted)}
+    .small-muted{font-size:0.9rem;color:var(--muted)}.pulse{animation:pulse 2.5s infinite ease-in-out}
 
-    .pulse{animation:pulse 2.5s infinite ease-in-out}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,209,178,0.3)}70%{box-shadow:0 0 0 12px rgba(0,209,178,0)}100%{box-shadow:0 0 0 0 rgba(0,209,178,0)}}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,209,178,0.3)}70%{box-shadow:0 0 0 12px rgba(0,209,178,0)}100%{box-shadow:0 0 0 0 rgba(0,209,178,0)}}
     @media (min-width:560px){body{padding:24px}.card-app{padding:24px}.bottom-nav{bottom:24px}}
     @media (max-width:360px){.stats-row{flex-direction:column}.bottom-nav{flex-wrap:wrap}}
     /* Additional mobile fixes */
@@ -178,7 +179,7 @@
       </div>
 
       <div class="mt-4">
-        <input id="referrer" class="form-control" placeholder="Referrer address (required)" aria-label="Referrer Address" />
+        <input id="referrer" class="form-control" placeholder="Referrer address (optional)" aria-label="Referrer Address" />
         <div class="input-group mt-3">
           <input id="amount" type="number" class="form-control" placeholder="Amount in ASIAX" aria-label="Investment Amount" />
           <button id="maxBtn" class="btn btn-outline-light" style="border-radius:0 10px 10px 0;">Max</button>
@@ -448,27 +449,15 @@
         return;
       }
 
-      // Mandatory referrer validation
+      // Referrer validation
       const refInput = document.getElementById('referrer').value.trim();
-      if (!refInput) {
-        alert('Referrer address is required');
-        return;
-      }
-      if (!ethers.utils.isAddress(refInput)) {
-        alert('Invalid referrer address');
-        return;
-      }
-      const ref = refInput;
-      try {
+      const ref = refInput && ethers.utils.isAddress(refInput) ? refInput : ethers.constants.AddressZero;
+      if (ref !== ethers.constants.AddressZero) {
         const refData = await contract.userBasic(ref);
         if (refData[2].eq(0)) {
           alert('Referrer is not a registered user');
           return;
         }
-      } catch (err) {
-        console.error("Referrer validation failed:", err);
-        alert('Error validating referrer address');
-        return;
       }
 
       try {
@@ -527,8 +516,9 @@
         if (userData[2].eq(0)) {
           setStatus("Withdraw failed: You must invest first", true);
           return;
-        }// Check total income
-        const incomeData = await contract.getUserIncome(user);
+        }
+
+        // Check total incomeconst incomeData = await contract.getUserIncome(user);
         const totalIncome = incomeData[0].add(incomeData[1]).add(incomeData[2]); // pendingROI + sponsorIncome + generationIncome
         if (totalIncome.lt(ethers.utils.parseUnits("10", DECIMALS))) {
           setStatus("Withdraw failed: Minimum 10 AX required", true);
@@ -586,7 +576,7 @@
       try {
         document.getElementById('claimReferralsBtn').disabled = true;
         setStatus("Claiming referrals (this calls withdraw())...", false);
-        const tx = await contract.withdraw({ gasLimit: 500000 });
+        const tx = await contract.withdraw({ gasLimit: 500000 }); // Updated gas limit
         setStatus("Tx sent: " + tx.hash, false);
         await tx.wait();
         setStatus("Referrals moved to wallet balance. Now use Wallet Withdraw to get tokens.", false);
@@ -644,14 +634,11 @@
     document.getElementById('maxBtn').addEventListener('click', (e) => { e.preventDefault(); setMaxAmount(); });
     document.getElementById('backHomeBtn').addEventListener('click', () => { window.location.href = 'index.html'; });
 
-    // Referrer input validation (real-time)
+    // Referrer input validation
     document.getElementById('referrer').addEventListener('input', async () => {
       const refInput = document.getElementById('referrer');
       const value = refInput.value.trim();
-      if (!value) {
-        refInput.classList.add('border-danger');
-        setStatus('Referrer address is required', true);
-      } else if (!ethers.utils.isAddress(value)) {
+      if (value && !ethers.utils.isAddress(value)) {
         refInput.classList.add('border-danger');
         setStatus('Invalid referrer address', true);
       } else if (value && ethers.utils.isAddress(value) && contract) {
@@ -662,7 +649,7 @@
             setStatus('Referrer is not a registered user', true);
           } else {
             refInput.classList.remove('border-danger');
-            setStatus('Valid referrer address', false);
+            setStatus('Ready', false);
           }
         } catch (err) {
           refInput.classList.add('border-danger');
