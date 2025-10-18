@@ -1,48 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ASIAX Menu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>ASIAX MENU - Mobile UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0e1a; --card: rgba(20, 30, 50, 0.8); --glass: rgba(255,255,255,0.05);
+      --accent: #00d4ff; --success: #00ff88; --warning: #ffaa00; --error: #ff4757; 
+      --yellow: #facc15; --pink: #ec4899; --green: #10b981; --muted: #a0b0c0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; font-family:'Inter',system-ui,sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0a0e1a 100%);
+      color: #e8f0ff; padding-bottom: 20px; overflow-x: hidden;
+    }
+    .app { max-width: 420px; margin: 0 auto; padding: 16px; }
+    
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      background: rgba(10,14,26,0.8); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .custom-logo { width: 120px; height: 48px; object-fit: contain; }
+    .menu-title { 
+      font-size: 1.2rem; font-weight: 700; 
+      background: linear-gradient(135deg, var(--accent), #00ff88); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+    }
+    
+    .card-app {
+      background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+      padding: 20px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3); animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    
+    /* ✅ CYAN MENU ITEMS - FULL GLOW! */
+    .menu-item {
+      border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; border: none; 
+      transition: all 0.3s; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(0,212,255,0.1); /* CYAN BG */
+      border: 1px solid rgba(0,212,255,0.2); /* CYAN BORDER */
+    }
+    .menu-item:hover { 
+      transform: translateX(8px); 
+      box-shadow: 0 8px 25px rgba(0,212,255,0.3); /* CYAN GLOW */
+      border-color: var(--accent);
+    }
+    .menu-item:last-child { margin-bottom: 0; }
+    
+    .menu-icon { font-size: 1.3rem; margin-right: 12px; width: 24px; text-align: center; }
+    .menu-text { font-weight: 600; font-size: 1rem; flex: 1; }
+    .menu-arrow { font-size: 0.9rem; color: var(--muted); }
+    
+    /* ICON COLORS */
+    .team-item { border-left: 4px solid var(--accent); }
+    .team-item .menu-icon { color: var(--accent); }
+    
+    .invest-item { border-left: 4px solid var(--yellow); }
+    .invest-item .menu-icon { color: var(--yellow); }
+    
+    .links-item { border-left: 4px solid var(--green); }
+    .links-item .menu-icon { color: var(--green); }
+    
+    .offers-item { border-left: 4px solid var(--pink); }
+    .offers-item .menu-icon { color: var(--pink); }
+    
+    .home-btn {
+      background: linear-gradient(135deg, var(--accent), #00ff88); color: #000;
+      border-radius: 12px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600;
+      min-height: auto; min-width: 80px; white-space: nowrap; margin-top: 16px;
+    }
+    
+    @media (max-width: 360px) { 
+      .app { padding: 12px; } 
+      .card-app { padding: 16px; } 
+      .menu-item { padding: 14px 16px; }
+    }
+  </style>
 </head>
+<body>
+  <div class="app">
+    <!-- TOPBAR WITH LOGO -->
+    <div class="topbar">
+      <div class="brand">
+        <img src="prologo.png" class="custom-logo" alt="ASIAX" />
+      </div>
+      <button id="homeBtn" class="home-btn">
+        <i class="fas fa-arrow-left"></i> Home
+      </button>
+    </div><!-- MAIN MENU CARDS -->
+    <div class="card-app">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div class="menu-title">𝐀𝐒𝐈𝐀𝐗 𝐌𝐄𝐍𝐔</div>
+      </div>
 
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
+      <!-- TEAM BUTTON -->
+      <button class="menu-item team-item" onclick="window.location.href='axteam50.html'">
+        <div style="display:flex;align-items:center;">
+          <i class="fas fa-users menu-icon"></i>
+         <span class="menu-text" style="color: white !important;">𝐌𝐘 𝟓𝟎 𝐋𝐄𝐕𝐄𝐋</span>
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </button>
 
-  <!-- Top bar -->
-  <div class="flex justify-between items-center bg-gray-900 p-4 shadow">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid fa-bars text-xl text-cyan-400"></i>
-      <h1 class="text-lg font-semibold">𝐀𝐒𝐈𝐀𝐗 𝐌𝐄𝐍𝐔</h1>
+      <!-- INVESTMENT BUTTON -->
+      <button class="menu-item invest-item" onclick="window.location.href='axmyinvest.html'">
+        <div style="display:flex;align-items:center;">
+          <i class="fas fa-coins menu-icon"></i>
+          <span class="menu-text" style="color: white !important;">𝐌𝐘 𝐈𝐍𝐕𝐄𝐒𝐓𝐌𝐄𝐍𝐓</span>
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </button>
+
+      <!-- LINKS BUTTON -->
+      <button class="menu-item links-item" onclick="window.open('https://t.me/asiax_pro')">
+        <div style="display:flex;align-items:center;">
+          <i class="fas fa-link menu-icon"></i>
+          <span class="menu-text" style="color: white !important;">𝐀𝐒𝐈𝐀𝐗 𝐀𝐋𝐋 𝐋𝐈𝐍𝐋𝐒</span>
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </button>
+
+      <!-- OFFERS BUTTON -->
+      <button class="menu-item offers-item" onclick="window.open('https://t.me/asiax_offers')">
+        <div style="display:flex;align-items:center;">
+          <i class="fas fa-gift menu-icon"></i>
+          <span class="menu-text" style="color: white !important;">𝐀𝐒𝐈𝐀𝐗 𝐀𝐋𝐋 𝐎𝐅𝐅𝐄𝐑𝐒</span>
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </button>
     </div>
-    <button onclick="window.location.href='axpro.html'" class="bg-cyan-600 hover:bg-cyan-500 px-3 py-1 rounded-lg text-sm font-medium">
-      <i class="fa-solid fa-arrow-left"></i> Home
-    </button>
   </div>
 
-  <!-- Menu options -->
-  <div class="flex flex-col gap-4 p-5">
-    <button onclick="window.location.href='axteam50.html'" class="w-full bg-gray-800 hover:bg-gray-700 text-left px-5 py-3 rounded-xl shadow flex justify-between items-center">
-      <span><i class="fa-solid fa-users text-cyan-400"></i> &nbsp; 𝐌𝐘 50 𝐋𝐄𝐕𝐄𝐋</span>
-      <i class="fa-solid fa-chevron-right text-gray-500"></i>
-    </button>
-
-    <button onclick="window.location.href='axmyinvest.html'" class="w-full bg-gray-800 hover:bg-gray-700 text-left px-5 py-3 rounded-xl shadow flex justify-between items-center">
-      <span><i class="fa-solid fa-coins text-yellow-400"></i> &nbsp; 𝐌𝐘 𝐈𝐍𝐕𝐄𝐒𝐓𝐌𝐄𝐍𝐓</span>
-      <i class="fa-solid fa-chevron-right text-gray-500"></i>
-    </button>
-
-    <button onclick="window.open('https://t.me/asiax_pro')" class="w-full bg-gray-800 hover:bg-gray-700 text-left px-5 py-3 rounded-xl shadow flex justify-between items-center">
-      <span><i class="fa-solid fa-link text-green-400"></i> &nbsp; 𝐀𝐒𝐈𝐀𝐗 𝐀𝐋𝐋 𝐋𝐈𝐍𝐊𝐒</span>
-      <i class="fa-solid fa-chevron-right text-gray-500"></i>
-    </button>
-
-    <button onclick="window.open('https://t.me/asiax_offers')" class="w-full bg-gray-800 hover:bg-gray-700 text-left px-5 py-3 rounded-xl shadow flex justify-between items-center">
-      <span><i class="fa-solid fa-gift text-pink-400"></i> &nbsp; 𝐀𝐒𝐈𝐀𝐗 𝐀𝐋𝐋 𝐎𝐅𝐅𝐄𝐑𝐒</span>
-      <i class="fa-solid fa-chevron-right text-gray-500"></i>
-    </button>
-  </div>
-
+  <script>
+    // HOME BUTTON
+    document.getElementById('homeBtn').onclick = () => {
+      window.location.href = 'axpro.html'; // YE BADALO!
+    };
+  </script>
 </body>
 </html>
