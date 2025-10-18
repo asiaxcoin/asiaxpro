@@ -1,138 +1,153 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MY TEAM</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>ASIAX TEAM - Mobile UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
+    :root {
+      --bg: #0a0e1a; --card: rgba(20, 30, 50, 0.8); --glass: rgba(255,255,255,0.05);
+      --accent: #00d4ff; --success: #00ff88; --warning: #ffaa00; --error: #ff4757; --muted: #a0b0c0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; font-family:'Inter',system-ui,sans-serif; }
     body {
-      font-family: "Poppins", sans-serif;
-      background-color: #000;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0a0e1a 100%);
+      color: #e8f0ff; padding-bottom: 20px; overflow-x: hidden;
     }
-
-    .container {
-      width: 95%;
-      max-width: 430px;
-      background: linear-gradient(145deg, #111, #000);
-      border-radius: 16px;
-      box-shadow: 0 0 20px #00ffff40;
-      padding: 20px;
-      animation: fadeIn 0.8s ease-in;
+    .app { max-width: 420px; margin: 0 auto; padding: 16px; }
+    
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      background: rgba(10,14,26,0.8); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .custom-logo { width: 120px; height: 48px; object-fit: contain; }
+    .app-title { font-size: 1.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .status {
+      padding: 12px; border-radius: 12px; text-align: center; font-size: 0.85rem; font-weight: 500;
+      background: var(--glass); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px;
     }
-
-    h1 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #00ffff;
-      margin-bottom: 10px;
-      text-shadow: 0 0 10px #00ffff;
+    .status.success { background: rgba(0,255,136,0.1); color: var(--success); border-color: var(--success); }
+    .status.error { background: rgba(255,71,87,0.1); color: var(--error); border-color: var(--error); }
+    
+    .card-app {
+      background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+      padding: 20px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3); animation: float 6s ease-in-out infinite;
     }
-
-    button {
-      background-color: #00ffff;
-      color: #000;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 10px 0;
-      width: 100%;
-      transition: 0.3s;
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    
+    .btn-modern {
+      border-radius: 16px; padding: 14px 20px; font-weight: 600; border: none; transition: all 0.3s;
+      min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-
-    button:hover {
-      background-color: #00cccc;
-      transform: scale(1.02);
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #00ff88); color: #000; }
+    .btn-modern:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,212,255,0.4); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    
+    .btn-home {
+      background: linear-gradient(135deg, var(--accent), #00ff88); color: #000;
+      border-radius: 12px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600;
+      min-height: auto; min-width: 70px; white-space: nowrap;
     }
-
-    .back-btn {
-      background-color: #ff007f;
-      color: #fff;
+    
+    .team-header {
+      text-align: center; margin-bottom: 16px;
+      font-size: 1.3rem; font-weight: 700; color: var(--accent);
     }
-
-    .back-btn:hover {
-      background-color: #ff3399;
+    
+    .team-table {
+      width: 100%; border-collapse: collapse; font-size: 0.85rem;
+      background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
+    .team-table th {
+      background: rgba(0,212,255,0.2); color: var(--accent); padding: 12px 8px;
+      font-weight: 600; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-
-    th, td {
-      border-bottom: 1px solid #222;
-      padding: 10px 0;
+    .team-table td {
+      padding: 10px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);}
+    .team-table tr:hover {
+      background: rgba(0,212,255,0.1);
     }
-
-    th {
-      color: #00ffff;
-      font-weight: 600;
-    }
-
-    tr:hover {
-      background-color: #111;
-      transition: 0.3s;
-    }
-
+    .team-table .level { color: var(--success); font-weight: 600; }
+    .team-table .count { color: var(--accent); font-weight: 600; }
+    .team-table .business { color: var(--warning); }
+    
     .loader {
-      display: none;
-      font-size: 16px;
-      color: #00ffff;
-      margin-top: 15px;
-      animation: blink 1s infinite;
+      text-align: center; padding: 20px; color: var(--accent);
+      font-size: 1rem; animation: pulse 1.5s infinite;
     }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    
+    .user-info {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
     }
-
+    
+    @media (max-width: 360px) { 
+      .app { padding: 12px; } 
+      .card-app { padding: 16px; } 
+      .team-table { font-size: 0.8rem; }
+      .team-table th, .team-table td { padding: 8px 4px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>𝐌𝐘 50 𝐋𝐄𝐕𝐄𝐋 𝐓𝐄𝐀𝐌</h1>
-    <button id="connect-btn">𝐏𝐫𝐞𝐬𝐬 𝐭𝐡𝐢𝐬 𝐛𝐮𝐭𝐭𝐨𝐧 𝐭𝐨 𝐯𝐢𝐞𝐰 𝐭𝐡𝐞 𝐭𝐞𝐚𝐦</button>
-    <div id="loader" class="loader">Loading team data...</div>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="prologo.png" class="custom-logo" alt="ASIAX" />
+      </div>
+      <button id="connectBtn" class="btn btn-modern btn-primary">
+        <i class="fas fa-wallet"></i> <span id="connectLabel">𝐯𝐢𝐞𝐰</span>
+      </button>
+    </div>
 
-    <table id="teamTable">
-      <thead>
-        <tr>
-          <th>Level</th>
-          <th>Team Count 👥</th>
-          <th>Business 💰</th>
-        </tr>
-      </thead>
-      <tbody id="teamData"></tbody>
-    </table>
+    <div id="status" class="status">Ready — Connect Wallet</div>
 
-    <button class="back-btn" onclick="goHome()">BACK TO HOME</button>
+    <div class="card-app">
+      <div class="user-info">
+        <div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Address</div>
+          <div id="userAddress" style="font-weight:700;font-size:1.1rem">Not Connected</div>
+        </div>
+        <button id="backHome" class="btn-home" style="display:none;">
+          <i class="fas fa-home"></i> Home
+        </button>
+      </div>
+    </div>
+
+    <div class="card-app">
+      <div class="team-header">
+        <i class="fas fa-users" style="font-size:1.5rem;margin-right:8px"></i>
+        𝐌𝐘 𝟓𝟎 𝐋𝐄𝐕𝐄𝐋 𝐓𝐄𝐀𝐌
+      </div>
+      <div id="loader" class="loader" style="display:none;">
+        <i class="fas fa-spinner fa-spin"></i> Loading team data...
+      </div>
+      <table id="teamTable" class="team-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Team Count 👥</th>
+            <th>Business 💰</th>
+          </tr>
+        </thead>
+        <tbody id="teamData"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    const contractAddress = "0xF6d0d72AAf0Bbf5C459E680f1e6E75E3B1ce1f06"; // <-- apna address daalna
-    const POLYGON_CHAIN_ID = "0x89";
+    // 🚨 YE 2 LINES BADALO!
+    const CONTRACT_ADDR = '0xF6d0d72AAf0Bbf5C459E680f1e6E75E3B1ce1f06';
+    const HOME_PAGE = 'axmenu.html'; // YE BADALO!
 
     const abi = [
       {
@@ -147,35 +162,60 @@
       }
     ];
 
-    async function connectWallet() {
+    const POLYGON_CHAIN_ID = "0x89";
+    let wallet, contract;
+
+    document.getElementById('connectBtn').onclick = async () => {
+      if (window.ethereum) {
+        try {
+          // Check Polygon
+          const chainId = await window.ethereum.request({ method: "eth_chainId" });
+          if (chainId !== POLYGON_CHAIN_ID) {
+            alert('Please switch MetaMask to Polygon Mainnet!');
+            return;
+          }
+
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          wallet = await signer.getAddress();
+          
+          contract = new ethers.Contract(CONTRACT_ADDR, abi, provider);
+          
+          document.getElementById('userAddress').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(38);
+          document.getElementById('connectLabel').innerHTML = 'Connected';document.getElementById('connectBtn').disabled = true;
+          document.getElementById('backHome').style.display = 'block';
+          
+          document.getElementById('status').innerHTML = '⏳ Loading Team Data...';
+          document.getElementById('status').className = 'status';
+          
+          await loadTeamData();
+          
+          document.getElementById('status').innerHTML = '✅ Team Loaded!';
+          document.getElementById('status').className = 'status success';
+        } catch(e) {
+          document.getElementById('status').innerHTML = '❌ ' + e.message;
+          document.getElementById('status').className = 'status error';
+        }
+      } else {
+        alert('MetaMask install karo!');
+      }
+    };
+
+    async function loadTeamData() {
       try {
-        if (!window.ethereum) {
-          alert("Please install MetaMask!");
-          return;
-        }
-
-        // Check Polygon Network
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (chainId !== POLYGON_CHAIN_ID) {
-          alert("Please switch MetaMask to Polygon Mainnet!");
-          return;
-        }
-
-        // Connect wallet
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const userAddress = await signer.getAddress();const contract = new ethers.Contract(contractAddress, abi, provider);
-
-        document.getElementById("loader").style.display = "block";
-        const result = await contract.getBusinessAndAmount(userAddress);
-        document.getElementById("loader").style.display = "none";
-
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('teamTable').style.display = 'none';
+        
+        const result = await contract.getBusinessAndAmount(wallet);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('teamTable').style.display = 'table';
+        
         displayTeam(result.levelCount, result.levelBusiness);
-      } catch (error) {
-        console.error(error);
-        alert("⚠️ Error: Unable to load team data!");
-        document.getElementById("loader").style.display = "none";
+      } catch(e) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('status').innerHTML = '❌ Error loading team!';
+        document.getElementById('status').className = 'status error';
       }
     }
 
@@ -186,22 +226,19 @@
       for (let i = 0; i < 50; i++) {
         const tr = document.createElement("tr");
         const count = levelCount[i].toString();
-        const business = parseFloat(ethers.utils.formatUnits(levelBusiness[i], 18)).toFixed(2); // assuming 18 decimals
+        const business = parseFloat(ethers.utils.formatUnits(levelBusiness[i], 18)).toFixed(2);
 
         tr.innerHTML = 
-          `<td>Level ${i + 1}</td>
-          <td>${count}</td>
-          <td>${business}</td>`
-        ;
+          `<td class="level">Level ${i + 1}</td>
+           <td class="count">${count}</td>
+           <td class="business">${business}</td>`;
         tbody.appendChild(tr);
       }
     }
 
-    function goHome() {
-      window.location.href = "axmenu.html"; // yahan apna home page link daalna
-    }
-
-    document.getElementById("connect-btn").addEventListener("click", connectWallet);
+    document.getElementById('backHome').onclick = () => {
+      window.location.href = HOME_PAGE;
+    };
   </script>
 </body>
 </html>
