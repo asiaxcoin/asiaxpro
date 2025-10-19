@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>ASIAX REFERRALS - Mobile UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0a0e1a; --card: rgba(20, 30, 50, 0.8); --glass: rgba(255,255,255,0.05);
+      --accent: #00d4ff; --success: #00ff88; --warning: #ffaa00; --error: #ff4757; --muted: #a0b0c0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; font-family:'Inter',system-ui,sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0a0e1a 100%);
+      color: #e8f0ff; padding-bottom: 20px; overflow-x: hidden;
+    }
+    .app { max-width: 420px; margin: 0 auto; padding: 16px; }
+    
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      background: rgba(10,14,26,0.8); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .custom-logo { width: 120px; height: 48px; object-fit: contain; }
+    
+    .status {
+      padding: 12px; border-radius: 12px; text-align: center; font-size: 0.85rem; font-weight: 500;
+      background: var(--glass); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px;
+    }
+    .status.success { background: rgba(0,255,136,0.1); color: var(--success); border-color: var(--success); }
+    .status.error { background: rgba(255,71,87,0.1); color: var(--error); border-color: var(--error); }
+    
+    .card-app {
+      background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+      padding: 20px; margin-bottom: 16px; backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    
+    .btn-modern {
+      border-radius: 16px; padding: 14px 20px; font-weight: 600; border: none; transition: all 0.3s;
+      min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #00ff88); color: #000; }
+    .btn-modern:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,212,255,0.4); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    
+    .btn-home {
+      background: linear-gradient(135deg, var(--accent), #00ff88); color: #000;
+      border-radius: 12px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600;
+      min-height: auto; min-width: 70px; white-space: nowrap;
+    }
+    
+    .referral-header {
+      text-align: center; margin-bottom: 16px;
+      font-size: 1.3rem; font-weight: 700; color: var(--accent);
+    }
+    .count-badge {
+      background: var(--success); color: #000; padding: 4px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 700; margin-left: 8px;
+    }
+    
+    .search-container { position: relative; margin-bottom: 16px; }
+    .search-input {
+      width: 100%; padding: 12px 40px 12px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);
+      color: #fff; font-size: 0.9rem; transition: all 0.3s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--accent); outline: none; }
+    .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); }.referral-list { max-height: 60vh; overflow-y: auto; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .referral-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 8px;
+      background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.1); border-radius: 12px;
+      cursor: pointer; transition: all 0.3s; word-break: break-all;
+    }
+    .referral-item:hover { background: rgba(0,212,255,0.15); border-color: var(--accent); transform: translateY(-2px); }
+    .referral-text { flex: 1; font-size: 0.9rem; color: var(--success); font-weight: 500; }
+    .copy-btn { color: var(--muted); font-size: 1.1rem; transition: all 0.3s; cursor: pointer; }
+    .copy-btn:hover { color: var(--success); transform: scale(1.2); }
+    
+    .no-referrals { text-align: center; padding: 40px 20px; color: var(--muted); font-style: italic; font-size: 1rem; }
+    .loader { text-align: center; padding: 20px; color: var(--accent); font-size: 1rem; }
+    .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="prologo.png" class="custom-logo" alt="ASIAX" />
+      </div>
+      <button id="connectBtn" class="btn btn-modern btn-primary">
+        <i class="fas fa-wallet"></i> <span id="connectLabel">Connect</span>
+      </button>
+    </div>
+
+    <div id="status" class="status">Ready — Connect Wallet</div>
+
+    <div class="card-app">
+      <div class="user-info">
+        <div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Address</div>
+          <div id="userAddress" style="font-weight:700;font-size:1.1rem">Not Connected</div>
+        </div>
+        <button id="backHome" class="btn-home" style="display:none;">
+          <i class="fas fa-home"></i> Home
+        </button>
+      </div>
+    </div>
+
+    <div class="card-app">
+      <div class="referral-header">
+        <i class="fas fa-users" style="font-size:1.5rem;margin-right:8px"></i>
+        My Referrals <span id="countBadge" class="count-badge" style="display:none;">0</span>
+      </div>
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Enter address to search referrals">
+        <i class="fas fa-search search-icon"></i>
+      </div>
+      <div id="loader" class="loader" style="display:none;">
+        <i class="fas fa-spinner fa-spin"></i> Loading ALL referrals...
+      </div>
+      <div id="referralList" class="referral-list" style="display:none;">
+        <div class="no-referrals">Connect wallet to see your referrals</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONTRACT_ADDR = '0xF6d0d72AAf0Bbf5C459E680f1e6E75E3B1ce1f06';
+    const HOME_PAGE = 'axpro.html';
+    const POLYGON_CHAIN_ID = "0x89";
+    let wallet, provider;
+
+    // 🔥 YOUR CONNECT CODE (KEEP SAME - WORKING!)
+    document.getElementById('connectBtn').addEventListener('click', connectWallet);
+    document.getElementById('connectBtn').addEventListener('touchstart', connectWallet);
+
+    async function connectWallet() {
+      try {
+        if (!window.ethereum) {
+          alert('MetaMask Nahi Mila! Download: https://metamask.io');
+          return;
+        }
+
+        document.getElementById('status').innerHTML = '🔗 Opening MetaMask...';
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (chainId !== POLYGON_CHAIN_ID) {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: POLYGON_CHAIN_ID }]
+          });
+        }provider = new ethers.providers.Web3Provider(window.ethereum);
+        wallet = accounts[0];
+        
+        document.getElementById('userAddress').innerHTML = wallet.substring(0,6) + '...' + wallet.substring(38);
+        document.getElementById('connectLabel').innerHTML = 'Connected ✅';
+        document.getElementById('connectBtn').disabled = true;
+        document.getElementById('backHome').style.display = 'block';
+        
+        document.getElementById('status').innerHTML = '✅ Loading ALL referrals...';
+        document.getElementById('status').className = 'status success';
+        
+        // 🔥 FIXED REFERRALS LOAD
+        await loadReferralsPERFECT(wallet.toLowerCase());
+        
+      } catch (error) {
+        document.getElementById('status').innerHTML = `❌ Error: ${error.message}`;
+        document.getElementById('status').className = 'status error';
+      }
+    }
+
+    // 🔥 PERFECT REFERRALS - FULL HISTORY!
+    async function loadReferralsPERFECT(targetAddress) {
+      try {
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('referralList').style.display = 'none';
+        
+        const contract = new ethers.Contract(CONTRACT_ADDR, [
+          "event UserJoined(address indexed user, address indexed referrer, uint256 amount, uint256 netInvestment)"
+        ], provider);
+        
+        console.log('🔍 Scanning FULL contract history...');
+        
+        // 🔥 FULL HISTORY - NO LIMIT!
+        const filter = contract.filters.UserJoined(null, targetAddress.toLowerCase());
+        const events = await contract.queryFilter(filter, 0, 'latest');
+        
+        console.log(`📊 Found ${events.length} events for ${targetAddress}`);
+        
+        const referralsList = events.map(event => event.args.user.toLowerCase());
+        
+        // 🔥 REMOVE DUPLICATES
+        const uniqueReferrals = [...new Set(referralsList)];
+        console.log(`✅ ${uniqueReferrals.length} UNIQUE referrals found!`);
+        
+        displayReferrals(uniqueReferrals, targetAddress);
+        
+      } catch(e) {
+        console.error('Error:', e);
+        document.getElementById('status').innerHTML = '❌ Loading failed! Try refresh.';
+        document.getElementById('status').className = 'status error';
+      }
+    }
+
+    function displayReferrals(referralsList, targetAddress) {
+      const list = document.getElementById('referralList');
+      const count = referralsList.length;
+      
+      document.getElementById('countBadge').textContent = count;
+      document.getElementById('countBadge').style.display = 'inline';
+      document.getElementById('loader').style.display = 'none';
+      
+      list.innerHTML = '';
+      
+      if (count === 0) {
+        list.innerHTML = '<div class="no-referrals">No direct referrals found 😔</div>';
+      } else {
+        referralsList.forEach(userAddress => {
+          const item = document.createElement('div');
+          item.className = 'referral-item';
+          item.innerHTML = `
+            <span class="referral-text">${userAddress.substring(0,6)}...${userAddress.substring(38)}</span>
+            <i class="fas fa-copy copy-btn" title="Copy"></i>
+          `;
+          item.querySelector('.copy-btn').onclick = (e) => {
+            e.stopPropagation();
+            copyAddress(userAddress);
+          };
+          list.appendChild(item);
+        });
+        list.style.display = 'block';
+      }
+      
+      document.getElementById('status').innerHTML = `✅ ${count} Direct Referral${count > 1 ? 's' : ''} Loaded!`;
+      document.getElementById('status').className = 'status success';
+    }
+
+    // 🔥 SEARCH
+    document.getElementById('searchInput').oninput = function() {
+      const query = this.value.trim();
+      if (query.length >= 6) {
+        loadReferralsPERFECT(query);
+      } else if (query.length === 0) {
+        loadReferralsPERFECT(wallet.toLowerCase());
+      }
+    };// 🔥 COPY
+    function copyAddress(address) {
+      navigator.clipboard.writeText(address).then(() => {
+        const btn = event.target;
+        btn.innerHTML = '✅';
+        setTimeout(() => btn.innerHTML = '📋', 1000);
+        alert('✅ Copied!');
+      });
+    }
+
+    document.getElementById('backHome').onclick = () => {
+      window.location.href = HOME_PAGE;
+    };
+  </script>
+</body>
+</html>
