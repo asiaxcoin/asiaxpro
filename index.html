@@ -37,7 +37,8 @@
       backdrop-filter: blur(14px);
       border: 1px solid rgba(255,255,255,0.06);
       position: relative;
-      overflow: hidden;
+      overflow-y: auto; /* Added for scroll if needed on small screens */
+      max-height: 95vh;
     }
 
     header {
@@ -48,7 +49,7 @@
     }
 
     .brand-logo {
-      width: 140px;
+      width: 130px;
       height: auto;
       max-width: 80%;
       animation: pulse 3s ease-in-out infinite;
@@ -70,34 +71,42 @@
       line-height: 1.4;
     }
 
+    /* Grid for 8 buttons - 2 columns */
     .buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 18px;
+      gap: 10px;
+      margin-top: 15px;
     }
 
     .btn {
-      padding: 14px 0;
+      padding: 12px 5px;
       border-radius: 14px;
       border: none;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 13px; /* Slightly smaller for 8 buttons to fit well */
       text-align: center;
       transition: all 0.25s ease;
       cursor: pointer;
       width: 100%;
+      text-transform: uppercase;
     }
 
     .btn:hover {
-      transform: scale(1.04);
-      box-shadow: 0 6px 14px rgba(255,255,255,0.1);
+      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(255,255,255,0.1);
     }
 
+    /* Button Colors */
     .btn-asiax { background: linear-gradient(135deg, #FFD700, #FFB800); color:#111; }
     .btn-portfolio { background: linear-gradient(135deg, #FF6F00, #FF8F00); color:#fff; }
     .btn-telegram { background: linear-gradient(135deg, #00C6FF, #0072FF); color:#fff; }
-    .btn-buy { background: linear-gradient(135deg, #39c716, #0ca031); color:#fff; }
+    .btn-facebook { background: linear-gradient(135deg, #39c716, #0ca031); color:#fff; }
+    /* New Button Gradients */
+    .btn-insta { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); color:#fff; }
+    .btn-twitter { background: linear-gradient(135deg, #1DA1F2, #0d8bd9); color:#fff; }
+    .btn-youtube { background: linear-gradient(135deg, #FF0000, #b30000); color:#fff; }
+    .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); color:#fff; }
 
     .video-card {
       margin-top: 16px;
@@ -110,17 +119,17 @@
     .video-card video {
       width: 100%;
       height: auto;
-      max-height: 220px;
+      max-height: 180px;
       object-fit: cover;
       border-radius: 12px;
       display: block;
     }
 
     footer {
-      margin-top: 18px;
+      margin-top: 15px;
       padding-top: 10px;
       border-top: 1px dashed rgba(255,255,255,0.1);
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
@@ -128,27 +137,22 @@
       flex-wrap: wrap;
     }
 
-    /* ✅ Full Responsive Scaling */
+    /* Mobile Optimization */
     @media (max-width: 480px) {
       html, body {
-        padding: 8px;
-        align-items: flex-start;
+        padding: 5px;
+        align-items: center;
       }
 
       .container {
-        padding: 14px;
+        padding: 12px;
         border-radius: 16px;
       }
 
-      .brand-logo { width: 120px; }
-      .btn { padding: 12px; font-size: 14px; }
-      .buttons { gap: 10px; }
-      .video-card video { max-height: 180px; }
-      footer { font-size: 12px; justify-content: center; gap: 8px; text-align: center; }
-    }
-
-    @media (max-height: 600px) {
-      .video-card video { max-height: 150px; }
+      .brand-logo { width: 110px; }
+      .btn { padding: 10px 4px; font-size: 12px; }
+      .buttons { gap: 8px; }
+      footer { justify-content: center; gap: 5px; }
     }
   </style>
 </head>
@@ -160,11 +164,18 @@
 
     <div class="brand-text">
       <p>“𝑬𝒂𝒓𝒏, 𝑮𝒓𝒐𝒘, 𝒂𝒏𝒅 𝑳𝒆𝒂𝒅 𝒕𝒉𝒆 𝑭𝒖𝒕𝒖𝒓𝒆”</p>
-    </div><section class="buttons">
+    </div>
+
+    <section class="buttons">
       <button class="btn btn-asiax" onclick="window.open('axpro.html','_blank')">𝐀𝐒𝐈𝐀𝐗 𝐏𝐑𝐎</button>
       <button class="btn btn-portfolio" onclick="window.open('axportfolio.html','_blank')">𝐏𝐎𝐑𝐓𝐅𝐎𝐋𝐈𝐎</button>
-      <button class="btn btn-telegram" onclick="window.open('https://t.me/asiax_coin','_blank')">𝐓𝐄𝐋𝐄𝐆𝐑𝐀𝐌</button>
-      <button class="btn btn-buy" onclick="window.open('https://www.facebook.com/profile.php?id=61577529006206&mibextid=ZbWKwL','_blank')">𝐅𝐀𝐂𝐄𝐁𝐎𝐎𝐊</button>
+      <button class="btn btn-telegram" onclick="window.open('https://t.me/asiaxpro','_blank')">𝐓𝐄𝐋𝐄𝐆𝐑𝐀𝐌</button>
+      <button class="btn btn-facebook" onclick="window.open('https://www.facebook.com/profile.php?id=61577529006206&mibextid=ZbWKwL','_blank')">𝐅𝐀𝐂𝐄𝐁𝐎𝐎𝐊</button>
+      
+      <button class="btn btn-insta" onclick="window.open('https://www.instagram.com/asiaxpro?igsh=MWtra2J1YjhzN2Y3dA==','_blank')">𝐈𝐍𝐒𝐓𝐀𝐆𝐑𝐀𝐌</button>
+      <button class="btn btn-twitter" onclick="window.open('https://t.me/asiaxpro','_blank')">𝐍𝐄𝐖 𝐎𝐅𝐅𝐄𝐑</button>
+      <button class="btn btn-youtube" onclick="window.open('https://www.youtube.com/@ASIAXPRO','_blank')">𝐘𝐎𝐔𝐓𝐔𝐁𝐄</button>
+      <button class="btn btn-whatsapp" onclick="window.open('https://t.me/asiaxpro','_blank')">𝐃𝐀𝐎</button>
     </section>
 
     <div class="video-card">
@@ -175,7 +186,7 @@
 
     <footer>
       <div>Made with ❤️ by <b>AsiaX Team</b></div>
-      <div>v1.0</div>
+      <div>v1.01</div>
     </footer>
   </div>
 
@@ -195,6 +206,4 @@
     });
   </script>
 </body>
-
 </html>
-
